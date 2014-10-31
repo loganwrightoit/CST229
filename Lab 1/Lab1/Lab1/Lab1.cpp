@@ -22,16 +22,11 @@ map<int, map<char, int>*> stateMaps;
 // Current state map
 map<char, int> *lastStateMap;
 
-// The initial state (first state is always zero)
-int initState = 0;
+// The initial state (determined by first state in first transition)
+int initState = -1;
 
 // Tracks last state for easy retrieval
-int lastState = 0;
-
-bool IsYesState(char state)
-{
-    return std::find(yesStates.begin(), yesStates.end(), state) != yesStates.end();
-}
+int currState = -1;
 
 //
 // Checks if string fits language rules.
@@ -41,14 +36,12 @@ bool IsStringInLanguage(char * inStr)
     // Set current state map to start point (should always be zero)
     lastStateMap = (stateMaps.find(initState))->second;
 
-    //////// DEBUG CODE ////////
     if (debug)
     {
         cout << endl << "****************************" << endl;
         cout << "* Processing string:" << endl;
         cout << "*" << endl;
     }
-    //////// END DEBUG ////////
 
     for (int idx = 0; idx < strlen(inStr); ++idx)
     {
@@ -56,40 +49,32 @@ bool IsStringInLanguage(char * inStr)
         auto iter = lastStateMap->find(inStr[idx]);
         if (iter != lastStateMap->end())
         {
-            //////// DEBUG CODE ////////
             if (debug)
             {
-                cout << "* char '" << inStr[idx] << "' transitioning from state " << lastState;
+                cout << "* char '" << inStr[idx] << "' transitioning from state " << currState;
             }
-            //////// END DEBUG ////////
 
             // Grab new state and save it
-            int newState = lastState = iter->second;
+            int newState = currState = iter->second;
 
             // Change to new state map
             lastStateMap = stateMaps.find(newState)->second;
 
-            //////// DEBUG CODE ////////
             if (debug)
             {
                 cout << " to " << newState << endl;
             }
-            //////// END DEBUG ////////
         }
         else
         {
-            //////// DEBUG CODE ////////
             if (debug)
             {
                 cout << "* char '" << inStr[idx] << "' has no transition, skipping." << endl;
             }
-            //////// END DEBUG ////////
-
             continue;
         }
     }
 
-    //////// DEBUG CODE ////////
     if (debug)
     {
         cout << "****************************" << endl << endl;
@@ -99,7 +84,7 @@ bool IsStringInLanguage(char * inStr)
     auto iter = yesStates.begin();
     while (iter != yesStates.end())
     {
-        if (*iter == lastState)
+        if (*iter == currState)
         {
             return true;
         }
@@ -183,7 +168,14 @@ int main()
         pch = strtok_s(NULL, " ", &context);
         endState = atoi(pch);
 
-        cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
+        if (debug && count == 0)
+        {
+            cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << " (initial state set to " << beginState << endl;
+        }
+        else
+        {
+            cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
+        }
 
         // Create beginState map if it doesn't exist
         if (stateMaps.count(beginState) == 0)
@@ -209,9 +201,11 @@ int main()
             (*temp).insert(std::pair<char, int>(byte, endState));
         }
 
+
+        // Set initial state of machine
         if (count == 0)
         {
-            initState = beginState;
+            initState = currState = beginState;
         }
     }
 
@@ -220,12 +214,17 @@ int main()
     cout << "****************************" << endl << endl;
 
     char str[256] = "";
-    cout << "Enter a string (or EXIT to exit): ";
+    cout << "Enter a string (BLANK for empty string, or EXIT to exit): ";
     cin >> str;
 
     // Loop until user chooses to exit
     while (strcmp(str, "EXIT") != 0)
     {
+        if (strcmp(str, "BLANK") == 0)
+        {
+            str[0] = '\0';
+        }
+
         // Check if string adheres to language rules
         if (!IsStringInLanguage(str))
         {
@@ -236,15 +235,14 @@ int main()
             cout << "SUCCESS: String is in language." << endl << endl;
         }
 
-        cout << "Enter a string (or EXIT to exit): ";
+        cout << "Enter a string (BLANK for empty string, or EXIT to exit): ";
         cin >> str;
     }
 
-    //////// DEBUG CODE ////////
     if (debug)
     {
         cout << endl << "****************************" << endl;
-        cout << "* Contents of map on close:" << endl;
+        cout << "* Transitions in map:" << endl;
         cout << "*" << endl;
 
         auto iter1 = stateMaps.begin();
@@ -256,7 +254,7 @@ int main()
             {
                 char val = iter2->first;
                 int tempEnd = iter2->second;
-                cout << "* stateMap[" << iter1->first << "]: " << val << char(32) << char(26) << char(32) << tempEnd << endl;
+                cout << "* " << iter1->first << char(32) << char(26) << char(32) << val << char(32) << char(26) << char(32) << tempEnd << endl;
                 iter2++;
             }
             iter1++;
@@ -264,7 +262,6 @@ int main()
 
         cout << "****************************" << endl;
     }
-    //////// END DEBUG ////////
 
     // Cleanup dynamically-created maps
     auto iter = delMaps.begin();
