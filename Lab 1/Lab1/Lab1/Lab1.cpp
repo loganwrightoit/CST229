@@ -50,27 +50,41 @@ int main()
     vector<int> values;
     vector<int>::iterator current;
 
+    char fStr[256] = "";
+    cout << "Enter name of language file (example.txt): ";
+    cin >> fStr;
+    cout << endl;
+
     // Read in pattern from file
-    std::ifstream inFile("machine1.txt");
+    std::ifstream inFile(fStr);
+
+    if (!inFile.is_open()) {
+        cout << "Could not open file " << fStr << ", exiting." << endl;
+        return 0;
+    }
+
     std::string line;
+
+    cout << "****************************" << endl;
+    cout << "* Recognizer reading file." << endl;
 
     // Get number YES states as lines
     std::getline(inFile, line);
     int numYesStates = atoi(line.c_str());
-    cout << "DEBUG: Number of states: " << numYesStates << endl;
+    cout << "* Number of states: " << numYesStates << endl;
 
     // Store YES states
     for (int state = 0; state < numYesStates; ++state)
     {
         std::getline(inFile, line);
         yesStates.push_back(atoi(line.c_str()));
-        cout << "DEBUG: Added 'YES' state: " << atoi(line.c_str()) << endl;
+        cout << "* Added 'YES' state: " << atoi(line.c_str()) << endl;
     }
 
     // Grab number of transition lines defined
     std::getline(inFile, line);
     int numTransitions = atoi(line.c_str());
-    cout << "DEBUG: Number of transitions: " << numTransitions << endl;
+    cout << "* Number of transitions: " << numTransitions << endl;
 
     // Map the transitions
     for (int count = 0; count < numTransitions; ++count)
@@ -92,7 +106,7 @@ int main()
         pch = strtok_s(NULL, " ", &context);
         endState = atoi(pch);
 
-        cout << "DEBUG: Added transition: " << beginState << " with '" << byte << "' to " << endState << endl;
+        cout << "* Added transition: " << beginState << char(26) << byte << char(26) << endState << endl;
 
         // Create state map if it doesn't exist
         if (stateMaps.count(beginState) == 0)
@@ -110,6 +124,16 @@ int main()
             temp.insert(std::pair<char, int>(byte, endState));
         }
     }
+
+    cout << "* Recognizer reached end of file." << endl;
+    cout << "****************************" << endl << endl;
+
+    char str[256];
+    cout << "Enter a string: ";
+    cin >> str;
+    cout << endl;
+
+    cout << "DEBUG: Detected string: " << str << endl;
 
     // Cleanup dynamic maps
     auto iter = delMaps.begin();
