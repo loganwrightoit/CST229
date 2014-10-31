@@ -230,14 +230,14 @@ int main()
         if (!IsStringInLanguage(str))
         {
             cout << "!!!!!! FAILURE: String is not in language." << endl << endl;
-
-            cout << "Enter a string (or STOP to exit): ";
-            cin >> str;
         }
         else
         {
             cout << "!!!!!! SUCCESS: String is in language." << endl << endl;
         }
+
+        cout << "Enter a string (or STOP to exit): ";
+        cin >> str;
     }
 
     //////// DEBUG - Output map contents to console
