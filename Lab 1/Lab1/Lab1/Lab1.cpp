@@ -8,7 +8,7 @@
 using namespace std;
 
 // Show debug console output
-bool debug = true;
+bool debug = false;
 
 // Holds YES states
 vector<int> yesStates;
@@ -77,7 +77,7 @@ bool IsStringInLanguage(char * inStr)
 
     if (debug)
     {
-        cout << "****************************" << endl << endl;
+        cout << "****************************" << endl;
     }
 
     // Check if final state value matches 'YES'
@@ -94,7 +94,7 @@ bool IsStringInLanguage(char * inStr)
     return false;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     //
     //  Example language rule file
@@ -103,18 +103,32 @@ int main()
     //    0       - Final
     //    ...     - More final states...
     //    2       - Number of transitions (lines to read for transition definitions)
-    //    0 a 1   - Transition where state 0 goes to 1 if input is 'a'
+    //    0 a 1   - Transition where state 0 goes to 1 if input is 'a' (first state is initial state)
     //    1 a 0   - More transitions...
     //
+
+    char fStr[256] = "";
+    
+    switch (argc)
+    {
+    case 2:
+        strcpy_s(fStr, argv[1]);
+        break;
+    case 3:
+        strcpy_s(fStr, argv[1]);
+        if (strcmp(argv[2], "debug") == 0)
+        {
+            debug = true;
+        }
+        break;
+    default:
+        cout << "ERROR: Incorrect arguments [args: <name>.txt (opt)debug]." << endl;
+        return 1;
+    }
 
     // Holds YES states
     vector<int> values;
     vector<int>::iterator current;
-
-    char fStr[256] = "";
-    cout << endl << "Enter name of language file (example.txt): ";
-    cin >> fStr;
-    cout << endl;
 
     // Read in pattern from file
     std::ifstream inFile(fStr);
@@ -126,7 +140,7 @@ int main()
 
     std::string line;
 
-    cout << "****************************" << endl;
+    cout << endl << "****************************" << endl;
     cout << "* Recognizer analyzing file:" << endl;
     cout << "*" << endl;
 
@@ -228,13 +242,14 @@ int main()
         // Check if string adheres to language rules
         if (!IsStringInLanguage(str))
         {
-            cout << "FAILURE: String is not in language." << endl << endl;
+            cout << "\n\tFAILURE: \"" << str << "\" is not in language." << endl << endl;
         }
         else
         {
-            cout << "SUCCESS: String is in language." << endl << endl;
+            cout << "\n\tSUCCESS: \"" << str << "\" is in language." << endl << endl;
         }
 
+        currState = initState; // Reset state for next string
         cout << "Enter a string (BLANK for empty string, or EXIT to exit): ";
         cin >> str;
     }
