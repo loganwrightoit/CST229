@@ -7,6 +7,9 @@
 
 using namespace std;
 
+// Show debug console output
+bool debug = true;
+
 // Holds YES states
 vector<int> yesStates;
 
@@ -19,20 +22,11 @@ map<int, map<char, int>*> stateMaps;
 // Current state map
 map<char, int> *lastStateMap;
 
-// The initial state (based on first transition in language)
-int initState = -1;
+// The initial state (first state is always zero)
+int initState = 0;
 
 // Tracks last state for easy retrieval
-int lastState = -1;
-
-/*
-Three machines to test:
-
-A machines that accepts an even number of 0’s. {00, 0000, 000000, ….}
-A machine that accepts any integer. {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, ……}
-A machine that accepts any legal C variable name. {index, xyz, name1, dept_2, ….}
-
-*/
+int lastState = 0;
 
 bool IsYesState(char state)
 {
@@ -47,54 +41,58 @@ bool IsStringInLanguage(char * inStr)
     // Set current state map to start point (should always be zero)
     lastStateMap = (stateMaps.find(initState))->second;
 
+    //////// DEBUG CODE ////////
+    if (debug)
+    {
+        cout << endl << "****************************" << endl;
+        cout << "* Processing string:" << endl;
+        cout << "*" << endl;
+    }
+    //////// END DEBUG ////////
+
     for (int idx = 0; idx < strlen(inStr); ++idx)
     {
-        cout << "DEBUG: Processing idx[" << idx << "/]: " << inStr[idx] << endl;
-
         // Skip char if it has no transition, or change state
         auto iter = lastStateMap->find(inStr[idx]);
         if (iter != lastStateMap->end())
         {
-            cout << "DEBUG: char '" << inStr[idx] << "' transitioning from state " << lastState;
+            //////// DEBUG CODE ////////
+            if (debug)
+            {
+                cout << "* char '" << inStr[idx] << "' transitioning from state " << lastState;
+            }
+            //////// END DEBUG ////////
 
             // Grab new state and save it
             int newState = lastState = iter->second;
 
             // Change to new state map
             lastStateMap = stateMaps.find(newState)->second;
-            cout << " to " << newState << endl;
+
+            //////// DEBUG CODE ////////
+            if (debug)
+            {
+                cout << " to " << newState << endl;
+            }
+            //////// END DEBUG ////////
         }
         else
         {
-            cout << "DEBUG: char '" << inStr[idx] << "' has no transition, skipping." << endl;
+            //////// DEBUG CODE ////////
+            if (debug)
+            {
+                cout << "* char '" << inStr[idx] << "' has no transition, skipping." << endl;
+            }
+            //////// END DEBUG ////////
+
             continue;
         }
+    }
 
-        /////////// NEW CODE
-
-        cout << "DEBUG: stateMap value found." << endl;
-
-        //auto iter = stateMaps.find(lastStateMap->find(inStr[idx]);
-        //if (iter != stateMaps.end()) // Key should always be found
-        //{
-        //}
-
-        /*
-        auto iter1 = stateMaps.begin();
-        while (iter1 != stateMaps.end())
-        {
-            auto getMap = *iter1->second;
-            auto iter2 = getMap.begin();
-            while (iter2 != getMap.end())
-            {
-                char val = iter2->first;
-                int tempEnd = iter2->second;
-                cout << "stateMap value found at idx " << iter1->first << ": " << val << ", endState: " << tempEnd << endl;
-                iter2++;
-            }
-        }
-        iter1++;
-        */
+    //////// DEBUG CODE ////////
+    if (debug)
+    {
+        cout << "****************************" << endl << endl;
     }
 
     // Check if final state value matches 'YES'
@@ -129,7 +127,7 @@ int main()
     vector<int>::iterator current;
 
     char fStr[256] = "";
-    cout << "Enter name of language file (example.txt): ";
+    cout << endl << "Enter name of language file (example.txt): ";
     cin >> fStr;
     cout << endl;
 
@@ -144,7 +142,8 @@ int main()
     std::string line;
 
     cout << "****************************" << endl;
-    cout << "* Recognizer reading file." << endl;
+    cout << "* Recognizer analyzing file:" << endl;
+    cout << "*" << endl;
 
     // Get number YES states as lines
     std::getline(inFile, line);
@@ -184,7 +183,7 @@ int main()
         pch = strtok_s(NULL, " ", &context);
         endState = atoi(pch);
 
-        cout << "* Added transition: " << beginState << char(26) << byte << char(26) << endState << endl;
+        cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
 
         // Create beginState map if it doesn't exist
         if (stateMaps.count(beginState) == 0)
@@ -216,47 +215,56 @@ int main()
         }
     }
 
+    cout << "*" << endl;
     cout << "* Recognizer reached end of file." << endl;
     cout << "****************************" << endl << endl;
 
     char str[256] = "";
-    cout << "Enter a string (or STOP to exit): ";
+    cout << "Enter a string (or EXIT to exit): ";
     cin >> str;
 
     // Loop until user chooses to exit
-    while (strcmp(str, "STOP") != 0)
+    while (strcmp(str, "EXIT") != 0)
     {
         // Check if string adheres to language rules
         if (!IsStringInLanguage(str))
         {
-            cout << "!!!!!! FAILURE: String is not in language." << endl << endl;
+            cout << "FAILURE: String is not in language." << endl << endl;
         }
         else
         {
-            cout << "!!!!!! SUCCESS: String is in language." << endl << endl;
+            cout << "SUCCESS: String is in language." << endl << endl;
         }
 
-        cout << "Enter a string (or STOP to exit): ";
+        cout << "Enter a string (or EXIT to exit): ";
         cin >> str;
     }
 
-    //////// DEBUG - Output map contents to console
-    /*
-    auto iter1 = stateMaps.begin();
-    while (iter1 != stateMaps.end())
+    //////// DEBUG CODE ////////
+    if (debug)
     {
-        auto getMap = *iter1->second;
-        auto iter2 = getMap.begin();
-        while (iter2 != getMap.end())
+        cout << endl << "****************************" << endl;
+        cout << "* Contents of map on close:" << endl;
+        cout << "*" << endl;
+
+        auto iter1 = stateMaps.begin();
+        while (iter1 != stateMaps.end())
         {
-            char val = iter2->first;
-            int tempEnd = iter2->second;
-            cout << "stateMap value found at idx " << iter1->first << ": " << val << ", endState: " << tempEnd << endl;
-            iter2++;
+            auto getMap = *iter1->second;
+            auto iter2 = getMap.begin();
+            while (iter2 != getMap.end())
+            {
+                char val = iter2->first;
+                int tempEnd = iter2->second;
+                cout << "* stateMap[" << iter1->first << "]: " << val << char(32) << char(26) << char(32) << tempEnd << endl;
+                iter2++;
+            }
+            iter1++;
         }
-        iter1++;
+
+        cout << "****************************" << endl;
     }
-    */
+    //////// END DEBUG ////////
 
     // Cleanup dynamically-created maps
     auto iter = delMaps.begin();
