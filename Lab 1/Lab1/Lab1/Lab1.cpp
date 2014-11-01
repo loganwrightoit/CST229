@@ -10,6 +10,9 @@ using namespace std;
 // Show debug console output
 bool debug = false;
 
+// Holds letters defined in language
+string language;
+
 // Holds YES states
 vector<int> yesStates;
 
@@ -33,7 +36,7 @@ int currState = -1;
 //
 bool IsStringInLanguage(char * inStr)
 {
-    // Set current state map to start point (should always be zero)
+    // Set current state map to start point (usually zero)
     lastStateMap = (stateMaps.find(initState))->second;
 
     if (debug)
@@ -43,35 +46,42 @@ bool IsStringInLanguage(char * inStr)
         cout << "*" << endl;
     }
 
-    for (int idx = 0; idx < strlen(inStr); ++idx)
+    for (unsigned int idx = 0; idx < strlen(inStr); ++idx)
     {
-        // Skip char if it has no transition, or change state
-        auto iter = lastStateMap->find(inStr[idx]);
-        if (iter != lastStateMap->end())
+        // Check if char is in language
+        if (language.find(inStr[idx]) != string::npos)
         {
-            if (debug)
+            // Skip char if it has no transition, or change state
+            auto iter = lastStateMap->find(inStr[idx]);
+            if (iter != lastStateMap->end())
             {
-                cout << "* char '" << inStr[idx] << "' transitioning from state " << currState;
-            }
+                if (debug)
+                {
+                    cout << "* char '" << inStr[idx] << "' transitioning from state " << currState;
+                }
 
-            // Grab new state and save it
-            int newState = currState = iter->second;
+                // Grab new state and save it
+                int newState = currState = iter->second;
 
-            // Change to new state map
-            lastStateMap = stateMaps.find(newState)->second;
+                // Change to new state map
+                lastStateMap = stateMaps.find(newState)->second;
 
-            if (debug)
-            {
-                cout << " to " << newState << endl;
+                if (debug)
+                {
+                    cout << " to " << newState << endl;
+                }
             }
         }
         else
         {
             if (debug)
             {
-                cout << "* char '" << inStr[idx] << "' has no transition, skipping." << endl;
+                cout << "* ERROR: character '" << inStr[idx] << "' not in language" << endl;
+                cout << "****************************" << endl;
             }
-            continue;
+
+            // Char is not in language, so string is not in language
+            return false;
         }
     }
 
@@ -141,8 +151,6 @@ int main(int argc, char* argv[])
     std::string line;
 
     cout << endl << "****************************" << endl;
-    cout << "* Recognizer analyzing file:" << endl;
-    cout << "*" << endl;
 
     // Get number YES states as lines
     std::getline(inFile, line);
@@ -184,11 +192,18 @@ int main(int argc, char* argv[])
 
         if (debug && count == 0)
         {
-            cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << " (initial state set to " << beginState << endl;
+            cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << " (initial state set to " << beginState << ")" << endl;
         }
         else
         {
             cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
+        }
+
+        // Add char to language
+        if (language.find_first_of(byte) == string::npos)
+        {
+            language += byte;
+            language.append(",");
         }
 
         // Create beginState map if it doesn't exist
@@ -223,8 +238,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    cout << "*" << endl;
-    cout << "* Recognizer reached end of file." << endl;
+    // Shave last comma from language
+    language = language.substr(0, language.size() - 1);
+
+    cout << "* Language Set: {" << language << "}" << endl;
     cout << "****************************" << endl << endl;
 
     char str[256] = "";
