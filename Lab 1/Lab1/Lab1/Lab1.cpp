@@ -1,5 +1,38 @@
+/***********************************************************
+* Author:				    Logan Wright
+* Date Created:			    10/30/2014
+* Last Modification Date:	11/01/2014
+* Lab Number:			    CST 229 Lab 1
+* Filename:				    Lab1.cpp
+*
+* Overview:
+*	This program reads strings provided by the user and
+*   validates them with using a state machine.  The program
+*   loads machine definitions from text files.
+*
+* Input:
+*   The user must provide a machine text file name
+*   as the first parameter.  Program input will be single or
+*   multiple words delimited by spaces.
+*
+*	    Example 1: 00 01 02 03
+*	    Example 2: 123 WORD _var
+*
+* Output:
+*	If user passes "debug" as the second parameter, the
+*   program will print language parameters and the contents
+*   of transition maps while validating words.
+*
+*   Typical program out is the result of matching words
+*   against each language.
+*
+*       Example:    SUCCESS: '00' is in language 1.
+*                   SUCCESS: '123' is in language 2.
+*                   SUCCESS: '_var' is in language 3.
+*                    RESULT: '00 123 _var' contains all valid words in language(s).
+************************************************************/
+
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -34,209 +67,17 @@ int initState = -1;
 // Tracks last state for easy retrieval
 int currState = -1;
 
-//
-// Checks if string fits language rules.
-//
-bool IsStringValid(char * inStr)
-{
-    lastStateMap = (stateMaps.find(initState))->second; // Set current state map to start point (usually zero)
-    for (unsigned int idx = 0; idx < strlen(inStr); ++idx)
-    {
-        // Check if char is in language
-        if (language.find(inStr[idx]) != string::npos)
-        {
-            auto iter = lastStateMap->find(inStr[idx]); // Skip char if it has no transition, or change state
-            if (iter != lastStateMap->end())
-            {
-                int newState = currState = iter->second; // Grab new state and save it
-                lastStateMap = stateMaps.find(newState)->second; // Change to new state map
-            }
-        }
-        else
-        {
-            return false; // Char is not in language, so string is not in language
-        }
-    }
+// This function validates a string against the loaded language.
+bool IsStringValid(char * inStr);
 
-    // Check if final state value matches 'YES'
-    auto iter = yesStates.begin();
-    while (iter != yesStates.end())
-    {
-        if (*iter == currState) return true;
-        iter++;
-    }
+// This function purges transition tables and global variables.
+void ResetStateMachine();
 
-    return false;
-}
+// This function translates a machine definition into algorithms.
+void PrepareStateMachine(int filePos);
 
-void ResetStateMachine()
-{
-    yesStates.clear();
-    stateMaps.clear();
-    language = "";
-    initState = currState = -1;
-    lastStateMap = NULL;
-
-    // DEBUG Show map states
-    if (debug)
-    {
-        cout << endl << "****************************" << endl;
-        cout << "* Transitions in map:" << endl;
-        cout << "*" << endl;
-
-        auto iter1 = stateMaps.begin();
-        while (iter1 != stateMaps.end())
-        {
-            auto getMap = *iter1->second;
-            auto iter2 = getMap.begin();
-            while (iter2 != getMap.end())
-            {
-                char val = iter2->first;
-                int tempEnd = iter2->second;
-                cout << "* " << iter1->first << char(32) << char(26) << char(32) << val << char(32) << char(26) << char(32) << tempEnd << endl;
-                iter2++;
-            }
-            iter1++;
-        }
-
-        cout << "****************************" << endl;
-    }
-
-    // Cleanup dynamically-created maps
-    auto iter = delMaps.begin();
-    while (iter != delMaps.end())
-    {
-        delete *iter;
-        iter++;
-    }
-    delMaps.clear();
-}
-
-void PrepareStateMachine(int filePos)
-{
-    // Seek to language position in file
-    file.clear();
-    file.seekg(filePos, ios::beg);
-
-    std::string line;
-
-    // Get number YES states as lines
-    getline(file, line);
-    int numYesStates = atoi(line.c_str());
-
-    if (debug)
-    {
-        cout << endl << "****************************" << endl;
-        cout << "* Number of states: " << numYesStates << endl;
-    }
-
-    // Store YES states
-    for (int state = 0; state < numYesStates; ++state)
-    {
-        getline(file, line);
-        yesStates.push_back(atoi(line.c_str()));
-        if (debug) cout << "* Added 'YES' state: " << atoi(line.c_str()) << endl;
-    }
-
-    // Grab number of transition lines defined
-    getline(file, line);
-    int numTransitions = atoi(line.c_str());
-    if (debug) cout << "* Number of transitions: " << numTransitions << endl;
-
-    // Map the transitions
-    for (int count = 0; count < numTransitions; ++count)
-    {
-        getline(file, line);
-        int beginState, endState;
-        char byte;
-
-        // Copy string to cstring for tokenizer
-        char buffer[256] = "";
-        strcpy_s(buffer, sizeof(buffer), line.c_str());
-
-        char *context = NULL;
-        char * pch;
-        pch = strtok_s(buffer, " ", &context);
-        beginState = atoi(pch);
-        pch = strtok_s(NULL, " ", &context);
-        byte = pch[0]; // Should only be one character
-        pch = strtok_s(NULL, " ", &context);
-        endState = atoi(pch);
-
-        if (debug)
-        {
-            if (count == 0)
-                cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << " (initial state set to " << beginState << ")" << endl;
-            else
-                cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
-        }
-        
-        // Add char to language
-        if (language.find_first_of(byte) == string::npos)
-        {
-            language += byte;
-            language.append(",");
-        }
-
-        // Create beginState map if it doesn't exist
-        if (stateMaps.count(beginState) == 0)
-        {
-            auto * temp = new map<char, int>;
-            delMaps.push_back(temp);
-            stateMaps.insert(std::pair<int, map<char, int>*>(beginState, temp));
-        }
-
-        // Create endState map if it doesn't exist
-        if (stateMaps.count(endState) == 0)
-        {
-            auto * temp = new map<char, int>;
-            delMaps.push_back(temp);
-            stateMaps.insert(std::pair<int, map<char, int>*>(endState, temp));
-        }
-
-        // Add transition to state map
-        auto iter = stateMaps.find(beginState);
-        if (iter != stateMaps.end()) // Key should always be found
-        {
-            map<char, int> *temp = iter->second;
-            (*temp).insert(std::pair<char, int>(byte, endState));
-        }
-
-
-        // Set initial state of machine
-        if (count == 0)
-        {
-            initState = currState = beginState;
-        }
-    }
-}
-
-//
-// Gets language start positions and adds to vector.
-//
-void GetLanguagePos(vector<int> *vec)
-{
-    string line;
-    vec->push_back(file.tellg());// Add language start position to array
-    getline(file, line);
-    bool hasData = !line.empty();
-    while (getline(file, line))
-    {
-        int pos = file.cur;
-        if (line.empty())
-        {
-            if (hasData)
-            {
-                hasData = false;
-                vec->push_back(file.tellg());
-            }
-        }
-        else
-        {
-            hasData = true;
-        }
-    }
-}
+// This function inserts language start positions into a vector.
+void GetLanguagePos(vector<int> *vec);
 
 int main(int argc, char* argv[])
 {
@@ -244,7 +85,7 @@ int main(int argc, char* argv[])
     //  Example language rule file
     //
     //    1       - Numbers of final states (lines to read for final states)
-    //    0       - Final
+    //    0       - Final state
     //    ...     - More final states...
     //    2       - Number of transitions (lines to read for transition definitions)
     //    0 a 1   - Transition where state 0 goes to 1 if input is 'a' (first state is initial state)
@@ -333,9 +174,244 @@ int main(int argc, char* argv[])
         }
         else
         {
-            cout << "\t RESULT: '" << str << "' is valid for all language(s)." << endl << endl;
+            cout << "\t RESULT: '" << str << "' contains all valid words in language(s)." << endl << endl;
         }
     }
 
     return 0;
+}
+
+/**************************************************************
+*   Entry:  inStr is a character array.
+*
+*    Exit:  a boolean for whether input string satisfies machine
+*           algorithm loaded into program.
+*
+* Purpose:  Validates a string against the loaded language.
+*
+***************************************************************/
+bool IsStringValid(char * inStr)
+{
+    lastStateMap = (stateMaps.find(initState))->second; // Set current state map to start point (usually zero)
+    for (unsigned int idx = 0; idx < strlen(inStr); ++idx)
+    {
+        // Check if char is in language
+        if (language.find(inStr[idx]) != string::npos)
+        {
+            auto iter = lastStateMap->find(inStr[idx]); // Skip char if it has no transition, or change state
+            if (iter != lastStateMap->end())
+            {
+                int newState = currState = iter->second; // Grab new state and save it
+                lastStateMap = stateMaps.find(newState)->second; // Change to new state map
+            }
+        }
+        else
+        {
+            return false; // Char is not in language, so string is not in language
+        }
+    }
+
+    // Check if final state value matches 'YES'
+    auto iter = yesStates.begin();
+    while (iter != yesStates.end())
+    {
+        if (*iter == currState) return true;
+        iter++;
+    }
+
+    return false;
+}
+
+/**************************************************************
+*   Entry:  none.
+*
+*    Exit:  none.
+*
+* Purpose:  Purges transition tables and global variables.
+*
+***************************************************************/
+void ResetStateMachine()
+{
+    yesStates.clear();
+    language = "";
+    initState = currState = -1;
+    lastStateMap = NULL;
+
+    // Prints map contents to console
+    if (debug)
+    {
+        cout << endl << "****************************" << endl;
+        cout << "* Transitions on machine reset:" << endl;
+        cout << "*" << endl;
+
+        auto iter1 = stateMaps.begin();
+        while (iter1 != stateMaps.end())
+        {
+            auto getMap = *iter1->second;
+            auto iter2 = getMap.begin();
+            while (iter2 != getMap.end())
+            {
+                char val = iter2->first;
+                int tempEnd = iter2->second;
+                cout << "* " << iter1->first << char(32) << char(26) << char(32) << val << char(32) << char(26) << char(32) << tempEnd << endl;
+                iter2++;
+            }
+            iter1++;
+        }
+
+        cout << "****************************" << endl << endl;
+    }
+
+    stateMaps.clear();
+
+    // Cleanup dynamically-created maps
+    auto iter = delMaps.begin();
+    while (iter != delMaps.end())
+    {
+        delete *iter;
+        iter++;
+    }
+    delMaps.clear();
+}
+
+/**************************************************************
+*   Entry:  filePos is where in the local variable 'file' to
+*           begin reading a machine definition.
+*
+*    Exit:  none.
+*
+* Purpose:  Translates a machine definition into algorithms.
+*
+***************************************************************/
+void PrepareStateMachine(int filePos)
+{
+    // Seek to language position in file
+    file.clear();
+    file.seekg(filePos, ios::beg);
+
+    std::string line;
+
+    // Get number YES states as lines
+    getline(file, line);
+    int numYesStates = atoi(line.c_str());
+
+    if (debug)
+    {
+        cout << endl << "****************************" << endl;
+        cout << "* Number of states: " << numYesStates << endl;
+    }
+
+    // Store YES states
+    for (int state = 0; state < numYesStates; ++state)
+    {
+        getline(file, line);
+        yesStates.push_back(atoi(line.c_str()));
+        if (debug) cout << "* Added 'YES' state: " << atoi(line.c_str()) << endl;
+    }
+
+    // Grab number of transition lines defined
+    getline(file, line);
+    int numTransitions = atoi(line.c_str());
+    if (debug) cout << "* Number of transitions: " << numTransitions << endl;
+
+    // Map the transitions
+    for (int count = 0; count < numTransitions; ++count)
+    {
+        getline(file, line);
+        int beginState, endState;
+        char byte;
+
+        // Copy string to cstring for tokenizer
+        char buffer[256] = "";
+        strcpy_s(buffer, sizeof(buffer), line.c_str());
+
+        char *context = NULL;
+        char * pch;
+        pch = strtok_s(buffer, " ", &context);
+        beginState = atoi(pch);
+        pch = strtok_s(NULL, " ", &context);
+        byte = pch[0]; // Should only be one character
+        pch = strtok_s(NULL, " ", &context);
+        endState = atoi(pch);
+
+        if (debug)
+        {
+            if (count == 0)
+                cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << " (initial state set to " << beginState << ")" << endl;
+            else
+                cout << "* Added transition: " << beginState << char(32) << char(26) << char(32) << byte << char(32) << char(26) << char(32) << endState << endl;
+        }
+
+        // Add char to language
+        if (language.find_first_of(byte) == string::npos)
+        {
+            language += byte;
+            language.append(",");
+        }
+
+        // Create beginState map if it doesn't exist
+        if (stateMaps.count(beginState) == 0)
+        {
+            auto * temp = new map<char, int>;
+            delMaps.push_back(temp);
+            stateMaps.insert(std::pair<int, map<char, int>*>(beginState, temp));
+        }
+
+        // Create endState map if it doesn't exist
+        if (stateMaps.count(endState) == 0)
+        {
+            auto * temp = new map<char, int>;
+            delMaps.push_back(temp);
+            stateMaps.insert(std::pair<int, map<char, int>*>(endState, temp));
+        }
+
+        // Add transition to state map
+        auto iter = stateMaps.find(beginState);
+        if (iter != stateMaps.end()) // Key should always be found
+        {
+            map<char, int> *temp = iter->second;
+            (*temp).insert(std::pair<char, int>(byte, endState));
+        }
+
+        // Set initial state of machine
+        if (count == 0)
+        {
+            initState = currState = beginState;
+        }
+    }
+
+    if (debug) cout << "****************************" << endl;
+}
+
+/**************************************************************
+*   Entry:  vec is a vector reference for storing machine
+*           definition start positions in a file.
+*
+*    Exit:  none.
+*
+* Purpose:  Inserts file language start positions into a vector.
+*
+***************************************************************/
+void GetLanguagePos(vector<int> *vec)
+{
+    string line;
+    vec->push_back((int)file.tellg());// Add language start position to array
+    getline(file, line);
+    bool hasData = !line.empty();
+    while (getline(file, line))
+    {
+        int pos = file.cur;
+        if (line.empty())
+        {
+            if (hasData)
+            {
+                hasData = false;
+                vec->push_back((int)file.tellg());
+            }
+        }
+        else
+        {
+            hasData = true;
+        }
+    }
 }
