@@ -82,36 +82,23 @@ Tokenizer::~Tokenizer()
 std::vector<std::pair<string, Tokenizer::TokenType>> Tokenizer::Tokenize(string inStr)
 {
     std::vector<std::pair<string, TokenType>> tokens;
-    std::size_t prev = 0, pos;
+    size_t pos = 0, prev = 0;
+
     while ((pos = inStr.find_first_of(delimiters, prev)) != std::string::npos)
     {
-        if (pos > prev)
+        if (pos != prev)
         {
-            // Add token
-            string token = inStr.substr(prev, pos - prev);
-            tokens.push_back(Tokenizer::GetPair(token));
-
-            // If delimiter is not space, add as token
-            string delimiter = inStr.substr(pos, pos + 1);
-            if (delimiter != " ")
-            {
-                tokens.push_back(Tokenizer::GetPair(delimiter));
-            }
+            tokens.push_back(Tokenizer::GetPair(inStr.substr(prev, pos - prev)));
         }
+
+        // If position is before symbol, add it
+        auto iter = tokenMatcher.find(inStr.substr(pos, 1));
+        if (iter != tokenMatcher.end())
+        {
+            tokens.push_back(Tokenizer::GetPair(iter->first));
+        }
+
         prev = pos + 1;
-    }
-    if (prev < inStr.length())
-    {
-        // Add last token that is not a delimiter
-        string token = inStr.substr(prev, std::string::npos);
-        tokens.push_back(Tokenizer::GetPair(token));
-
-        // If delimiter is not space, add as token
-        string delimiter = inStr.substr(pos, pos + 1);
-        if (delimiter != " ")
-        {
-            tokens.push_back(Tokenizer::GetPair(delimiter));
-        }
     }
 
     return tokens;

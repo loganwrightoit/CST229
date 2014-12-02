@@ -34,7 +34,7 @@ class Tokenizer
         std::pair<string, TokenType> GetPair(string inToken);
 
         map<string, Tokenizer::TokenType> tokenMatcher;
-        string delimiters = " ";
+        string delimiters = "  \t";
 
 };
 
