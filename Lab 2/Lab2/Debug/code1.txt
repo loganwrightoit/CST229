@@ -1,0 +1,5 @@
+while (true)
+{
+    int x = 4;
+    continue;
+}
