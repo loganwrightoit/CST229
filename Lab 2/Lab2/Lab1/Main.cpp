@@ -3,7 +3,7 @@
 * Date Created:             12/01/2014
 * Last Modification Date:   12/XX/2014
 * Lab Number:               CST 229 Lab 2
-* Filename:                 Lab2.cpp
+* Filename:                 Main.cpp
 *
 * Overview:
 *   This program is an extension to Lab 1's state machine.
@@ -80,11 +80,13 @@ int main(int argc, char* argv[])
         auto iter = result.begin();
         while (iter != result.end())
         {
-            // If type is Invalid, check against language definitions
+            // Check state machine for the following token types:
+            // - Integer
+            // - Float
+            // - Identifier
             if (iter->second == tokenizer.Invalid)
             {
-                cout << "Checking if Invalid token fits a language." << endl;
-                //iter->second = stateMachine.GetTokenType(iter->first);
+                iter->second = stateMachine.GetTokenType(iter->first);
             }
             
             // Store token and type pair
