@@ -65,38 +65,27 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // DEBUG
-    cout << "File opened." << endl;
-
     // Create tokenizer
     Tokenizer tokenizer;
 
-    // DEBUG
-    cout << "Tokenizer created." << endl;
-
     // Create state machine
     StateMachine stateMachine;
-
-    // DEBUG
-    cout << "StateMachine created." << endl;
 
     // Begin analyzing file
     std::string line;
     while (std::getline(file, line))
     {
-        // DEBUG
-        cout << "Analyzing line: " << line << endl;
-
         std::vector<std::pair<string, Tokenizer::TokenType>> result = tokenizer.Tokenize(line);
 
         auto iter = result.begin();
         while (iter != result.end())
         {
             // If type is Invalid, check against language definitions
-            //if (iter->second == tokenizer.Invalid)
-            //{
-            //    iter->second = stateMachine.GetTokenType(iter->first);
-            //}
+            if (iter->second == tokenizer.Invalid)
+            {
+                cout << "Checking if Invalid token fits a language." << endl;
+                //iter->second = stateMachine.GetTokenType(iter->first);
+            }
             
             // Store token and type pair
             tokens.push_back(*iter);
@@ -105,7 +94,7 @@ int main(int argc, char* argv[])
     }
 
     // Output results to console
-    cout << right << setw(20) << "Token" << setw(20) << "Token Type" << endl;
+    cout << endl << right << setw(20) << "Token" << setw(20) << "Token Type" << endl;
     cout << setw(40) << setfill('-') << "-" << setfill(' ') << endl;
     auto iter = tokens.begin();
     while (iter != tokens.end())

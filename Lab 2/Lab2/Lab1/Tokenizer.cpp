@@ -32,6 +32,13 @@ Tokenizer::Tokenizer()
     tokenMatcher.insert(std::pair<string, TokenType>(">", Operator));
 
     ////////////////////////////////////////////////////////////////
+    //                           Boolean                          //
+    ////////////////////////////////////////////////////////////////
+
+    tokenMatcher.insert(std::pair<string, TokenType>("true", Boolean));
+    tokenMatcher.insert(std::pair<string, TokenType>("false", Boolean));
+
+    ////////////////////////////////////////////////////////////////
     //                           Keywords                         //
     ////////////////////////////////////////////////////////////////
 
@@ -68,8 +75,6 @@ Tokenizer::Tokenizer()
         }
         ++iter;
     }
-
-    cout << "Delimiters: " << delimiters << endl;
 }
 
 Tokenizer::~Tokenizer()
