@@ -1,7 +1,7 @@
 /***********************************************************
 * Author:                   Logan Wright
 * Date Created:             12/01/2014
-* Last Modification Date:   12/XX/2014
+* Last Modification Date:   12/02/2014
 * Lab Number:               CST 229 Lab 2
 * Filename:                 StateMachine.h
 *
