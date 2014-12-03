@@ -41,9 +41,49 @@ class StateMachine
         StateMachine();
         ~StateMachine();
 
+		/**********************************************************************
+		*	Tokenizer::TokenType GetTokenType(string token);
+		*
+		*	  	Purpose:	Gets the TokenType that represents the given string.
+		*
+		*		Entry:		A string token.
+		*
+		*		Exit:		A TokenType enum.
+		*
+		***********************************************************************/
+
         Tokenizer::TokenType GetTokenType(string token);
 
     private:
+
+		/**********************************************************************
+		*	bool IsStringValid(string token);
+		*
+		*		Purpose:	Validates a string against the loaded language.
+		*
+		*		Entry:		A string token.
+		*
+		*		Exit:		a boolean for whether input string satisfies machine
+		*					algorithm loaded into program.
+		*
+		*	void ResetStateMachine();
+		*
+		*	  	Purpose:	Purges transition tables and variables.
+		*
+		*		Entry:		none.
+		*
+		*		Exit:		None.
+		*
+		*	void PrepareStateMachine(string fileName);
+		*
+		*	  	Purpose:	Translates a machine definition into algorithms.
+		*
+		*		Entry:		The filename of the language definition file to
+		*					load.
+		*
+		*		Exit:		none.
+		*
+		***********************************************************************/
 
         bool IsStringValid(string token);
         void ResetStateMachine();

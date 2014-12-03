@@ -118,13 +118,24 @@ Tokenizer::~Tokenizer()
 {
 }
 
-//
-// Tokenizes a string and returns a vector with <String,TokenType> pairs.
-//
+/**************************************************************
+*   Entry:  inStr is a line of text containing keywords, identifiers,
+*			and other C++ language components.
+*
+*    Exit:  A vector containing pairs of token strings and TokenType
+*			enum values.
+*
+* Purpose:  This function takes an input string, which ordinarily
+*			will be a line from a file, and splits it into tokens.
+*
+***************************************************************/
 std::vector<std::pair<string, Tokenizer::TokenType>> Tokenizer::Tokenize(string inStr)
 {
     std::vector<std::pair<string, TokenType>> tokens;
     size_t pos = 0, prev = 0;
+
+	// Add new-line at end of string to make tokenizing last piece easier
+	inStr.append("\n");
 
     while ((pos = inStr.find_first_of(delimiters, prev)) != std::string::npos)
     {
@@ -146,9 +157,14 @@ std::vector<std::pair<string, Tokenizer::TokenType>> Tokenizer::Tokenize(string 
     return tokens;
 }
 
-//
-// Returns a <String,TokenType> pair.
-//
+/**************************************************************
+*   Entry:  A string token.
+*
+*    Exit:  A new string-TokenType pair.
+*
+* Purpose:  Turns a string token into a string-TokenType pair.
+*
+***************************************************************/
 std::pair<string, Tokenizer::TokenType> Tokenizer::GetPair(string inToken)
 {
     auto iter = tokenMatcher.find(inToken);
@@ -162,9 +178,15 @@ std::pair<string, Tokenizer::TokenType> Tokenizer::GetPair(string inToken)
     }
 }
 
-//
-// Returns string representation for TokenType enumerator.
-//
+/**************************************************************
+*   Entry:  A TokenType.
+*
+*    Exit:  A string representation of the TokenType.
+*
+* Purpose:  This function is mainly for debug purposes.  It
+*			prints the enum TokenType as a string representation.
+*
+***************************************************************/
 string Tokenizer::EnumToString(TokenType type)
 {
     switch (type)

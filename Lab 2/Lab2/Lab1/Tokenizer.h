@@ -56,18 +56,52 @@ class Tokenizer
         Tokenizer();
         ~Tokenizer();
 
+		/**********************************************************************
+		*	std::vector<std::pair<string, TokenType>> Tokenize(string inStr);
+		*
+		*		Purpose:	This function takes an input string, which ordinarily
+		*					will be a line from a file, and splits it into tokens.
+		*	
+		*		Entry:		inStr is a line of text containing keywords, identifiers,
+		*					and other C++ language components.
+		*	
+		*		Exit:		A vector containing pairs of token strings and TokenType
+		*					enums.
+		*
+		*	string EnumToString(TokenType type);
+		*
+		*	  	Purpose:	This function is mainly for debug purposes.  It prints
+		*					the enum TokenType as a string representation.
+		*	
+		*		Entry:		A TokenType.
+		*	
+		*		Exit:		A string representation of the TokenType.
+		*
+		***********************************************************************/
+
         std::vector<std::pair<string, TokenType>> Tokenize(string inStr);
         string EnumToString(TokenType type);
 
     private:
+		
+		/**********************************************************************
+		*	std::pair<string, TokenType> GetPair(string inToken);
+		*
+		*	  	Purpose:	Turns a string token into a string-TokenType pair.
+		*
+		*		Entry:		A string token.
+		*
+		*		Exit:		A new string-TokenType pair.
+		*
+		***********************************************************************/
 
         std::pair<string, TokenType> GetPair(string inToken);
 
         // Contains string tokens that are common to language, with an associated TokenType.
         map<string, Tokenizer::TokenType> tokenMatcher;
 
-        // Used to discover tokens in language files
-        string delimiters = "  \t";
+        // Used to split code strings and discover tokens in language files
+        string delimiters = "  \t\n";
 
 };
 
