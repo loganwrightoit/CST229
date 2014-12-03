@@ -49,19 +49,23 @@ Tokenizer::Tokenizer()
     tokenMatcher.insert(std::pair<string, TokenType>(":", Symbol));
     tokenMatcher.insert(std::pair<string, TokenType>(";", Symbol));
     tokenMatcher.insert(std::pair<string, TokenType>(".", Symbol)); // For identifying floats
+	tokenMatcher.insert(std::pair<string, TokenType>(",", Symbol));
+	tokenMatcher.insert(std::pair<string, TokenType>("<", Symbol)); // or Operator
+	tokenMatcher.insert(std::pair<string, TokenType>(">", Symbol)); // or Operator
+	tokenMatcher.insert(std::pair<string, TokenType>("\"", Symbol));
+	tokenMatcher.insert(std::pair<string, TokenType>("\'", Symbol));
 
     ////////////////////////////////////////////////////////////////
     //                          Operators                         //
     ////////////////////////////////////////////////////////////////
 
     tokenMatcher.insert(std::pair<string, TokenType>("%", Operator));
-    tokenMatcher.insert(std::pair<string, TokenType>("*", Operator));
+    tokenMatcher.insert(std::pair<string, TokenType>("*", Operator)); // or Symbol (pointer, dereference)
     tokenMatcher.insert(std::pair<string, TokenType>("+", Operator));
     tokenMatcher.insert(std::pair<string, TokenType>("-", Operator));
     tokenMatcher.insert(std::pair<string, TokenType>("/", Operator));
-    tokenMatcher.insert(std::pair<string, TokenType>("<", Operator));
     tokenMatcher.insert(std::pair<string, TokenType>("=", Operator));
-    tokenMatcher.insert(std::pair<string, TokenType>(">", Operator));
+    
 
     ////////////////////////////////////////////////////////////////
     //                           Boolean                          //
@@ -88,20 +92,21 @@ Tokenizer::Tokenizer()
     tokenMatcher.insert(std::pair<string, TokenType>("else", Keyword));
 
     // Looping constructs
+	tokenMatcher.insert(std::pair<string, TokenType>("for", Keyword));
     tokenMatcher.insert(std::pair<string, TokenType>("while", Keyword));
     tokenMatcher.insert(std::pair<string, TokenType>("do", Keyword));
     tokenMatcher.insert(std::pair<string, TokenType>("continue", Keyword));
 
-    // General usage
+    // General C++ keywords
     tokenMatcher.insert(std::pair<string, TokenType>("break", Keyword));
     tokenMatcher.insert(std::pair<string, TokenType>("void", Keyword));
     tokenMatcher.insert(std::pair<string, TokenType>("return", Keyword));
 
-    // Add symbols as delimiters
+    // Add symbols and operators as delimiters
     auto iter = tokenMatcher.begin();
     while (iter != tokenMatcher.end())
     {
-        if (iter->second == Symbol)
+        if (iter->second == Symbol || iter->second == Operator)
         {
             delimiters.append(iter->first);
         }
