@@ -78,12 +78,12 @@ Tokenizer::TokenType StateMachine::GetTokenType(string token)
     auto iter = definitions.begin();
     while (iter != definitions.end())
     {
+		ResetStateMachine();
         PrepareStateMachine(iter->first);
         if (IsStringValid(token))
         {
             return iter->second;
         }
-        ResetStateMachine();
 
         ++iter;
     }
@@ -171,7 +171,7 @@ void StateMachine::ResetStateMachine()
 void StateMachine::PrepareStateMachine(string fileName)
 {
     // Load file
-    ifstream file;
+    fstream file;
     file.open(fileName);
     if (!file.is_open()) {
         cout << "ERROR: Could not open language file " << fileName << ", skipping." << endl;
@@ -252,4 +252,6 @@ void StateMachine::PrepareStateMachine(string fileName)
             initState = currState = beginState;
         }
     }
+
+	file.close();
 }
